@@ -1,8 +1,8 @@
 "use client";
 
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { Loader2, LogOut, ShieldAlert, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
+import { Loader2, LogOut, ShieldAlert, CheckCircle2, XCircle, RefreshCcw, ChevronRight, X } from "lucide-react";
 import { formatDateForDisplay, formatDateTimeForDisplay, teacherFullName, type SubmissionRecord } from "@/lib/schemas";
 
 type LoginResponse = { success: true } | { success: false; error: string };
@@ -15,6 +15,10 @@ export function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>([]);
   const [selected, setSelected] = useState<SubmissionRecord | null>(null);
+  const [decisionDraft, setDecisionDraft] = useState<{
+    submission: SubmissionRecord;
+    decision: "Aprobada" | "Rechazada";
+  } | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -84,22 +88,21 @@ export function AdminDashboard() {
     setIsLoggedIn(false);
     setSubmissions([]);
     setSelected(null);
+    setDecisionDraft(null);
   }
 
-  async function handleDecision(decision: "Aprobada" | "Rechazada") {
-    if (!selected) {
+  async function handleDecision(submission: SubmissionRecord, decision: "Aprobada" | "Rechazada", comment: string) {
+    if (!submission) {
       return;
     }
-
-    const comment = window.prompt("Ingrese un comentario breve para la decisión:", selected.comentarioDirectora ?? "") ?? "";
 
     startTransition(async () => {
       const response = await fetch("/api/respond", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cedula: selected.cedula,
-          rowIndex: selected.rowIndex,
+          cedula: submission.cedula,
+          rowIndex: submission.rowIndex,
           decision,
           comment,
         }),
@@ -112,6 +115,7 @@ export function AdminDashboard() {
       }
 
       setSelected(null);
+      setDecisionDraft(null);
       await reloadData();
     });
   }
@@ -206,9 +210,10 @@ export function AdminDashboard() {
                     <td className="px-4 py-4 text-right">
                       <button
                         onClick={() => setSelected(submission)}
-                        className="rounded-full bg-blue-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-blue-800"
+                        className="inline-flex items-center gap-2 rounded-full bg-blue-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-blue-800"
                       >
                         Ver
+                        <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -227,11 +232,15 @@ export function AdminDashboard() {
       </div>
 
       {selected ? (
-        <div className="glass-panel rounded-[2rem] border border-white/60 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 className="text-xl font-semibold text-slate-950">Detalle de solicitud</h2>
-              <dl className="mt-4 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+        <Modal
+          title="Detalle de solicitud"
+          description="Revise la información completa antes de autorizar o rechazar la solicitud."
+          onClose={() => setSelected(null)}
+          size="xl"
+        >
+          <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+              <dl className="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
                 <Detail label="Docente" value={teacherFullName(selected)} />
                 <Detail label="Cédula" value={selected.cedula} />
                 <Detail label="Correo" value={selected.correoInstitucional} />
@@ -253,13 +262,14 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            <div className="rounded-[1.5rem] border border-slate-300 bg-slate-100/70 p-5">
-              <h3 className="text-lg font-semibold text-slate-950">Acciones</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">La decisión se guarda en Sheets y dispara el correo de respuesta al docente.</p>
+            <div className="rounded-[1.5rem] border border-slate-300 bg-slate-50 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-900/60">Acciones</p>
+              <h3 className="mt-2 text-lg font-semibold text-slate-950">Registrar decisión</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Cada respuesta se guarda en Sheets y activa el correo correspondiente.</p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
                   disabled={isPending}
-                  onClick={() => handleDecision("Aprobada")}
+                  onClick={() => setDecisionDraft({ submission: selected, decision: "Aprobada" })}
                   className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-60"
                 >
                   <CheckCircle2 className="h-4 w-4" />
@@ -267,7 +277,7 @@ export function AdminDashboard() {
                 </button>
                 <button
                   disabled={isPending}
-                  onClick={() => handleDecision("Rechazada")}
+                  onClick={() => setDecisionDraft({ submission: selected, decision: "Rechazada" })}
                   className="inline-flex items-center gap-2 rounded-full bg-slate-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-600 disabled:opacity-60"
                 >
                   <XCircle className="h-4 w-4" />
@@ -277,7 +287,17 @@ export function AdminDashboard() {
               {isPending ? <p className="mt-3 text-sm text-slate-500">Registrando decisión...</p> : null}
             </div>
           </div>
-        </div>
+        </Modal>
+      ) : null}
+
+      {decisionDraft ? (
+        <DecisionModal
+          submission={decisionDraft.submission}
+          decision={decisionDraft.decision}
+          onClose={() => setDecisionDraft(null)}
+          onConfirm={async (comment) => handleDecision(decisionDraft.submission, decisionDraft.decision, comment)}
+          busy={isPending}
+        />
       ) : null}
     </section>
   );
@@ -289,5 +309,147 @@ function Detail({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">{label}</dt>
       <dd className="mt-1 text-sm font-medium text-slate-900">{value}</dd>
     </div>
+  );
+}
+
+function Modal({
+  title,
+  description,
+  onClose,
+  children,
+  size = "lg",
+}: {
+  title: string;
+  description?: string;
+  onClose: () => void;
+  children: ReactNode;
+  size?: "lg" | "xl";
+}) {
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={title}>
+      <button
+        type="button"
+        aria-label="Cerrar modal"
+        className="absolute inset-0 cursor-default bg-slate-950/55 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div className={`relative w-full ${size === "xl" ? "max-w-5xl" : "max-w-3xl"} overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_40px_120px_rgba(2,6,23,0.28)]`}>
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-700 px-5 py-5 text-white sm:px-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blue-100/70">Panel interno</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight">{title}</h2>
+            {description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{description}</p> : null}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="max-h-[calc(100vh-8rem)] overflow-y-auto bg-slate-50 px-5 py-5 sm:px-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function DecisionModal({
+  submission,
+  decision,
+  onClose,
+  onConfirm,
+  busy,
+}: {
+  submission: SubmissionRecord;
+  decision: "Aprobada" | "Rechazada";
+  onClose: () => void;
+  onConfirm: (comment: string) => void;
+  busy: boolean;
+}) {
+  const [comment, setComment] = useState(submission.comentarioDirectora ?? "");
+
+  return (
+    <Modal
+      title={decision === "Aprobada" ? "Aprobar solicitud" : "Rechazar solicitud"}
+      description={`Escriba un comentario breve antes de ${decision.toLowerCase()} esta solicitud.`}
+      onClose={onClose}
+      size="lg"
+    >
+      <div className="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
+        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Detail label="Docente" value={teacherFullName(submission)} />
+            <Detail label="Cédula" value={submission.cedula} />
+            <Detail label="Motivo" value={submission.motivo} />
+            <Detail label="Estado actual" value={submission.estado} />
+          </div>
+
+          <label className="mt-5 block space-y-2">
+            <span className="text-sm font-medium text-slate-700">Comentario de la directora</span>
+            <textarea
+              className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              value={comment}
+              onChange={(event) => setComment(event.target.value)}
+              placeholder="Escriba una observación breve para la respuesta automática..."
+            />
+          </label>
+        </div>
+
+        <div className="rounded-[1.5rem] border border-slate-300 bg-slate-900 p-5 text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-100/70">Confirmación</p>
+          <h3 className="mt-2 text-lg font-semibold">{decision === "Aprobada" ? "Autorizar solicitud" : "Marcar como rechazada"}</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-300">
+            La decisión se guarda en la hoja correspondiente y se envía el correo automático al docente.
+          </p>
+
+          <div className="mt-5 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
+            <p className="font-semibold text-white">Vista rápida</p>
+            <p className="mt-2 leading-6">{teacherFullName(submission)}</p>
+            <p className="leading-6 text-slate-300">{submission.correoInstitucional}</p>
+            <p className="mt-2 leading-6 text-slate-300">{submission.motivo}</p>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onConfirm(comment.trim())}
+              className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                decision === "Aprobada" ? "bg-blue-600 hover:bg-blue-500" : "bg-red-600 hover:bg-red-500"
+              }`}
+            >
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Confirmar {decision.toLowerCase()}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onClose}
+              className="rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 }
