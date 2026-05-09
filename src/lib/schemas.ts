@@ -53,6 +53,7 @@ function isMeaningfulDetail(value: string) {
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const timePattern = /^\d{2}:\d{2}$/;
+const timeRangePattern = /^\d{2}:\d{2}\s*-\s*\d{2}:\d{2}$/;
 
 function toLocalMidday(dateValue: string) {
   const [year, month, day] = dateValue.split("-").map(Number);
@@ -79,7 +80,7 @@ function isPastDate(dateValue: string) {
 
 function addDateIssues(
   ctx: z.RefinementCtx,
-  field: "fechaAcumulada" | "fechaRebajoPropuesta",
+  field: string,
   label: string,
   value: string,
   type: "past" | "future",
@@ -185,11 +186,88 @@ export const respondSchema = z.object({
   comment: z.string().trim().max(1000, "El comentario es demasiado largo.").default(""),
 });
 
+export const accumulationRecordSchema = z
+  .object({
+    nombre: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres."),
+    primerApellido: z
+      .string()
+      .trim()
+      .min(2, "El primer apellido debe tener al menos 2 caracteres."),
+    segundoApellido: z
+      .string()
+      .trim()
+      .min(2, "El segundo apellido debe tener al menos 2 caracteres."),
+    cedula: z
+      .string()
+      .trim()
+      .regex(/^\d{9}$/, "La cédula debe contener exactamente 9 dígitos."),
+    correoInstitucional: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email("Ingrese un correo institucional válido.")
+      .refine((value) => value.endsWith("@mep.go.cr"), {
+        message: "El correo debe terminar en @mep.go.cr.",
+      }),
+    fechaLeccionesAcumuladas: z.string().trim(),
+    cantidadLecciones: z.coerce
+      .number({ invalid_type_error: "Indique cuántas lecciones acumuló." })
+      .int("La cantidad debe ser un número entero.")
+      .min(1, "La cantidad mínima es 1 lección.")
+      .max(20, "La cantidad máxima permitida es 20 lecciones."),
+    horarioLeccionesAcumuladas: z
+      .string()
+      .trim()
+      .regex(timeRangePattern, "Use el formato HH:MM - HH:MM para el horario."),
+    motivo: z
+      .string()
+      .trim()
+      .refine((value) => motivoOptions.includes(value as (typeof motivoOptions)[number]), {
+        message: "Seleccione un motivo válido.",
+      }),
+    detalle: z.string().trim().max(1000, "El detalle es demasiado largo."),
+  })
+  .superRefine((data, ctx) => {
+    if (!isMeaningfulDetail(data.detalle)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["detalle"],
+        message:
+          "Explique el detalle con al menos 20 caracteres, varias letras distintas y sin repetir un solo carácter.",
+      });
+    }
+
+    addDateIssues(
+      ctx,
+      "fechaLeccionesAcumuladas",
+      "La fecha de lecciones acumuladas",
+      data.fechaLeccionesAcumuladas,
+      "future",
+    );
+
+    const [startRaw, endRaw] = data.horarioLeccionesAcumuladas.split("-").map((value) => value.trim());
+    if (timePattern.test(startRaw) && timePattern.test(endRaw)) {
+      const [startHour, startMinute] = startRaw.split(":").map(Number);
+      const [endHour, endMinute] = endRaw.split(":").map(Number);
+      const startTotalMinutes = startHour * 60 + startMinute;
+      const endTotalMinutes = endHour * 60 + endMinute;
+
+      if (endTotalMinutes <= startTotalMinutes) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["horarioLeccionesAcumuladas"],
+          message: "La hora final debe ser posterior a la hora inicial.",
+        });
+      }
+    }
+  });
+
 export const loginSchema = z.object({
   password: z.string().min(1, "Ingrese la contraseña de administración."),
 });
 
 export type TeacherRequestInput = z.infer<typeof teacherRequestSchema>;
+export type AccumulationRecordInput = z.infer<typeof accumulationRecordSchema>;
 export type RespondInput = z.infer<typeof respondSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 
@@ -198,6 +276,12 @@ export interface SubmissionRecord extends TeacherRequestInput {
   estado: SubmissionState;
   fechaAutorizacion: string;
   comentarioDirectora: string;
+  rowIndex: number;
+  sheetTitle: string;
+}
+
+export interface AccumulationRecord extends AccumulationRecordInput {
+  timestamp: string;
   rowIndex: number;
   sheetTitle: string;
 }

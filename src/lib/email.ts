@@ -1,4 +1,11 @@
-import { formatDateForDisplay, formatDateTimeForDisplay, teacherFullName, type SubmissionRecord, type TeacherRequestInput } from "./schemas";
+import {
+  formatDateForDisplay,
+  formatDateTimeForDisplay,
+  teacherFullName,
+  type AccumulationRecordInput,
+  type SubmissionRecord,
+  type TeacherRequestInput,
+} from "./schemas";
 
 const accent = "#0f4c5c";
 
@@ -57,6 +64,31 @@ export function buildTeacherReceiptEmailHtml(submission: TeacherRequestInput) {
       </p>
       <table role="presentation" style="width:100%;border-collapse:collapse;">${field("Nombre completo", teacherFullName(submission))}${field("Cédula", submission.cedula)}${field("Fecha acumulada", formatDateForDisplay(submission.fechaAcumulada))}${field("Fecha de rebajo propuesta", formatDateForDisplay(submission.fechaRebajoPropuesta))}${field("Hora de salida propuesta", submission.horaSalidaPropuesta)}</table>
       <p style="margin:24px 0 0;color:#64748b;font-size:14px;line-height:1.6;">Le notificaremos por correo cuando la solicitud sea aprobada o rechazada.</p>
+    `,
+  );
+}
+
+export function buildAccumulationSubmissionEmailHtml(submission: AccumulationRecordInput) {
+  return emailShell(
+    `Nuevo Registro de Acumulación – ${teacherFullName(submission)}`,
+    `
+      <p style="margin:0 0 20px;color:#334155;font-size:15px;line-height:1.6;">
+        Se recibió un nuevo registro de lecciones acumuladas. Estos son los datos enviados por la persona docente.
+      </p>
+      <table role="presentation" style="width:100%;border-collapse:collapse;">${field("Nombre", submission.nombre)}${field("Primer apellido", submission.primerApellido)}${field("Segundo apellido", submission.segundoApellido)}${field("Cédula", submission.cedula)}${field("Correo institucional", submission.correoInstitucional)}${field("Fecha de acumulación", formatDateForDisplay(submission.fechaLeccionesAcumuladas))}${field("Cantidad de lecciones", `${submission.cantidadLecciones}`)}${field("Horario", submission.horarioLeccionesAcumuladas)}${field("Motivo", submission.motivo)}${field("Detalle", submission.detalle || "-")}</table>
+    `,
+  );
+}
+
+export function buildAccumulationReceiptEmailHtml(submission: AccumulationRecordInput) {
+  return emailShell(
+    "Recibimos su registro de acumulación",
+    `
+      <p style="margin:0 0 20px;color:#334155;font-size:15px;line-height:1.6;">
+        Hola ${escapeHtml(submission.nombre)}, su registro de lecciones acumuladas quedó guardado correctamente.
+      </p>
+      <table role="presentation" style="width:100%;border-collapse:collapse;">${field("Nombre completo", teacherFullName(submission))}${field("Cédula", submission.cedula)}${field("Fecha de acumulación", formatDateForDisplay(submission.fechaLeccionesAcumuladas))}${field("Cantidad de lecciones", `${submission.cantidadLecciones}`)}${field("Horario", submission.horarioLeccionesAcumuladas)}</table>
+      <p style="margin:24px 0 0;color:#64748b;font-size:14px;line-height:1.6;">Gracias por mantener actualizado su registro docente.</p>
     `,
   );
 }
