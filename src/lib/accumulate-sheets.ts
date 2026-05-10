@@ -78,6 +78,12 @@ function buildAccumulationRecord(sheetTitle: string, rowIndex: number, row: stri
   };
 }
 
+function parseLeccionesValue(value: string) {
+  const normalized = value.replace(",", ".").trim();
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 async function findSheetTitleByCedula(cedula: string) {
   const sheets = getSheetsClient();
   const spreadsheetId = requiredEnv("GOOGLE_SHEET_ID_ACCUMULATE");
@@ -179,4 +185,60 @@ export async function listAllAccumulations() {
   }
 
   return records.sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+}
+
+export async function getAccumulationSummaryByCedula(cedula: string) {
+  const sheets = getSheetsClient();
+  const spreadsheetId = requiredEnv("GOOGLE_SHEET_ID_ACCUMULATE");
+  const sheetTitle = await findSheetTitleByCedula(cedula);
+
+  if (!sheetTitle) {
+    return null;
+  }
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${quoteSheetTitle(sheetTitle)}!A2:K`,
+  });
+
+  const rows = response.data.values ?? [];
+  if (rows.length === 0) {
+    return {
+      sheetTitle,
+      cedula,
+      docente: "",
+      totalLecciones: 0,
+      totalRegistros: 0,
+      ultimaFechaAcumulada: "",
+      ultimoRegistro: "",
+    };
+  }
+
+  const records = rows.map((row) => row.map((value) => String(value ?? "")));
+  const first = records[0];
+  const docente = [first[1], first[2], first[3]].filter(Boolean).join(" ").trim();
+
+  let totalLecciones = 0;
+  let lastRecordTimestamp = "";
+  let ultimaFechaAcumulada = "";
+
+  for (const row of records) {
+    totalLecciones += parseLeccionesValue(row[7] ?? "0");
+
+    const timestamp = row[0] ?? "";
+    if (timestamp && (!lastRecordTimestamp || Date.parse(timestamp) > Date.parse(lastRecordTimestamp))) {
+      lastRecordTimestamp = timestamp;
+      ultimaFechaAcumulada = row[6] ?? "";
+    }
+  }
+
+  return {
+    sheetTitle,
+    cedula,
+    docente,
+    totalLecciones,
+    totalRegistros: records.length,
+    ultimaFechaAcumulada,
+    ultimoRegistro: lastRecordTimestamp,
+  };
 }

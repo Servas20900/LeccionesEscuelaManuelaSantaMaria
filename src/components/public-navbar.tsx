@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BookMarked, Home, FilePenLine } from "lucide-react";
+import { BookMarked, Home, Search, FilePenLine } from "lucide-react";
 
 const logoUrl = "/school-brand.jpg";
 
 type PublicNavbarProps = {
-  currentPath?: "/" | "/solicitud" | "/acumuladas";
+  currentPath?: "/" | "/solicitud" | "/acumuladas" | "/consulta";
 };
 
 function itemClass(active: boolean) {
@@ -37,11 +37,15 @@ export function PublicNavbar({ currentPath = "/" }: PublicNavbarProps) {
           </Link>
           <Link href="/solicitud" className={itemClass(currentPath === "/solicitud")}>
             <FilePenLine className="h-4 w-4" />
-            Solicitud docente
+            Uso Acumuladas
           </Link>
           <Link href="/acumuladas" className={itemClass(currentPath === "/acumuladas")}>
             <BookMarked className="h-4 w-4" />
-            Acumulación
+            Registro Acumuladas
+          </Link>
+          <Link href="/consulta" className={itemClass(currentPath === "/consulta")}>
+            <Search className="h-4 w-4" />
+            Consulta Acumuladas
           </Link>
         </nav>
       </div>

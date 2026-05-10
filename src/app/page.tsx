@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookMarked, FilePenLine, Wrench } from "lucide-react";
+import { ArrowRight, BookMarked, FilePenLine, Sigma } from "lucide-react";
 import { PublicNavbar } from "@/components/public-navbar";
 
 const logoUrl = "/school-brand.jpg";
@@ -23,11 +23,11 @@ export default function Home() {
                 Plataforma institucional
               </p>
               <h1 className="max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                Gestion de horas acumuladas con una experiencia clara y solida
+                Sistema de horas acumuladas con flujo claro para uso, registro y consulta
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-slate-100/85 sm:text-base">
-                Inicio central para docentes y direccion, con flujo publico de solicitud,
-                panel privado y trazabilidad de decisiones en un mismo sistema.
+                Centro publico para docentes con tres modulos conectados:
+                uso de acumuladas, registro de acumuladas y consulta de acumuladas por cedula.
               </p>
             </div>
 
@@ -52,12 +52,12 @@ export default function Home() {
             <div className="inline-flex rounded-xl border border-blue-200/80 bg-blue-50 p-2 text-blue-900">
               <FilePenLine className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">Solicitud docente</h2>
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">Uso Acumuladas</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Vista funcional actual para registrar rebajo de horas acumuladas.
+              Formulario para solicitar el uso o rebajo de horas acumuladas ya registradas.
             </p>
             <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-900">
-              Ir a la vista actual <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              Ir a uso acumuladas <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </span>
           </Link>
 
@@ -68,25 +68,30 @@ export default function Home() {
             <div className="inline-flex rounded-xl border border-slate-300/80 bg-slate-100 p-2 text-slate-900">
               <BookMarked className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">Lecciones acumuladas</h2>
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">Registro Acumuladas</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Registre cantidad de lecciones, fecha, horario, motivo y detalle en su historial.
+              Registre cantidad de lecciones acumuladas, fecha, horario, motivo y detalle.
             </p>
             <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
-              Ir al registro <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              Ir a registro acumuladas <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </span>
           </Link>
 
-          <div className="glass-panel rounded-[1.6rem] border border-white/70 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
-            <div className="inline-flex rounded-xl border border-amber-300/80 bg-amber-100 p-2 text-amber-900">
-              <Wrench className="h-5 w-5" />
+          <Link
+            href="/consulta"
+            className="glass-panel group rounded-[1.6rem] border border-white/70 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.1)] transition hover:-translate-y-1"
+          >
+            <div className="inline-flex rounded-xl border border-emerald-300/80 bg-emerald-100 p-2 text-emerald-900">
+              <Sigma className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">Modulo en expansion</h2>
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">Consulta Acumuladas</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Espacio reservado para proximas funciones de consulta y reportes operativos.
+              Consulte por cedula la sumatoria automatica de lecciones acumuladas.
             </p>
-            <p className="mt-4 text-sm font-semibold text-amber-900">Proximamente</p>
-          </div>
+            <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-900">
+              Ir a consulta acumuladas <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+            </span>
+          </Link>
         </section>
       </div>
     </main>
