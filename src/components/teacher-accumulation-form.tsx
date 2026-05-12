@@ -5,7 +5,16 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ClipboardCheck, Loader2, Send } from "lucide-react";
-import { accumulationRecordSchema, horarioOptions, motivoOptions, type AccumulationRecordInput } from "@/lib/schemas";
+import type { z } from "zod";
+import {
+  accumulationRecordSchema,
+  horarioOptions,
+  motivoOptions,
+  type AccumulationRecordInput,
+} from "@/lib/schemas";
+
+type TeacherAccumulationFormValues = z.input<typeof accumulationRecordSchema>;
+type TeacherAccumulationSubmission = z.output<typeof accumulationRecordSchema>;
 
   const defaultValues: AccumulationRecordInput = {
   nombre: "",
@@ -31,7 +40,7 @@ export function TeacherAccumulationForm() {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<AccumulationRecordInput>({
+  } = useForm<TeacherAccumulationFormValues, unknown, TeacherAccumulationSubmission>({
     resolver: zodResolver(accumulationRecordSchema),
     defaultValues,
   });
@@ -49,7 +58,7 @@ export function TeacherAccumulationForm() {
     }
   }, [cantidadLecciones, horariosSeleccionados, setValue]);
 
-  async function onSubmit(values: AccumulationRecordInput) {
+  async function onSubmit(values: TeacherAccumulationSubmission) {
     setServerMessage(null);
     setServerError(null);
 
