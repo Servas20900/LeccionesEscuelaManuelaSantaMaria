@@ -1,8 +1,4 @@
 {
-  "navigationFallback": {
-    "rewrite": "/",
-    "exclude": ["/api/*", "/_next/*", "/favicon.ico", "/*.css", "/*.js", "/*.json", "/*.wasm"]
-  },
   "routes": [
     {
       "route": "/api/*",
