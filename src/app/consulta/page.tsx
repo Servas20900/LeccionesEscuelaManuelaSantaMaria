@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function ConsultaPage() {
   return (
-    <main className=\"relative min-h-screen overflow-x-hidden\">
-      <div className=\"absolute inset-0 grid-pattern opacity-30\" />
-      <div className=\"relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 sm:gap-6 lg:gap-10 px-3 py-4 sm:px-6 lg:px-8\">
+    <main className="relative min-h-screen overflow-x-hidden">
+      <div className="absolute inset-0 grid-pattern opacity-30" />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 sm:gap-6 lg:gap-10 px-3 py-4 sm:px-6 lg:px-8">
         <PublicNavbar currentPath="/consulta" />
 
         <header className="glass-panel relative overflow-hidden rounded-[2rem] border border-white/60 px-6 py-5 sm:px-8">
