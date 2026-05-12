@@ -18,30 +18,30 @@ function itemClass(active: boolean) {
 
 export function AdminNavbar({ currentPath = "/admin" }: AdminNavbarProps) {
   return (
-    <header className="glass-panel rounded-[1.6rem] border border-slate-200/80 px-4 py-3 sm:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="inline-flex items-center gap-3">
-          <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-slate-300/70 bg-slate-100/90">
+    <header className="glass-panel rounded-[1.6rem] border border-slate-200/80 px-3 py-3 sm:px-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="inline-flex items-center gap-3 flex-shrink-0">
+          <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-slate-300/70 bg-slate-100/90 flex-shrink-0">
             <Image src={logoUrl} alt="Logo institucional" fill sizes="44px" className="object-cover" priority />
           </div>
-          <div className="leading-tight">
+          <div className="leading-tight hidden sm:block">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Zona protegida</p>
             <p className="text-sm font-semibold text-slate-900 sm:text-base">Direccion institucional</p>
           </div>
         </div>
 
-        <nav className="flex items-center gap-2 text-sm font-medium">
+        <nav className="flex items-center gap-1 text-xs sm:text-sm font-medium flex-wrap">
           <Link href="/admin" className={itemClass(currentPath === "/admin")}>
-            <LayoutDashboard className="h-4 w-4" />
-            Rebajos
+            <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Rebajos</span>
           </Link>
           <Link href="/admin/acumulaciones" className={itemClass(currentPath === "/admin/acumulaciones")}>
-            <BookMarked className="h-4 w-4" />
-            Acumulaciones
+            <BookMarked className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Acumulaciones</span>
           </Link>
-          <div className="inline-flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-100">
-            <ShieldCheck className="h-4 w-4" />
-            Zona segura
+          <div className="inline-flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-100 flex-shrink-0">
+            <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Segura</span>
           </div>
         </nav>
       </div>

@@ -70,25 +70,26 @@ export function AccumulationSummaryChecker() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700">Cédula</span>
-              <input
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-                inputMode="numeric"
-                maxLength={9}
-                placeholder="Ejemplo: 123456789"
-                value={cedula}
-                onChange={(event) => setCedula(event.target.value)}
-              />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  className="flex-1 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 min-w-0"
+                  inputMode="numeric"
+                  maxLength={9}
+                  placeholder="Ejemplo: 123456789"
+                  value={cedula}
+                  onChange={(event) => setCedula(event.target.value)}
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap flex-shrink-0 sm:px-8"
+                >
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  <span className="hidden sm:inline">Consultar sumatoria</span>
+                  <span className="sm:hidden">Consultar</span>
+                </button>
+              </div>
             </label>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              Consultar sumatoria
-            </button>
-          </form>
 
           {error ? (
             <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>
