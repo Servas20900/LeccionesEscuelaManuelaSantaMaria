@@ -230,7 +230,7 @@ export const accumulationRecordSchema = z
       }),
     fechaLeccionesAcumuladas: z.string().trim(),
     cantidadLecciones: z.coerce
-      .number({ invalid_type_error: "Indique cuántas lecciones acumuló." })
+      .number()
       .int("La cantidad debe ser un número entero.")
       .min(1, "La cantidad mínima es 1 lección.")
       .max(20, "La cantidad máxima permitida es 20 lecciones."),
