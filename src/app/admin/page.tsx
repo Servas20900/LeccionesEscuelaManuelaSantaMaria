@@ -16,7 +16,7 @@ export default function AdminPage() {
         <header className="glass-panel rounded-[2rem] border border-slate-200/70 px-6 py-5 text-slate-900">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blue-900/60">Vista interna</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">Panel de dirección</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Revise solicitudes, lea el detalle completo y registre la decisión con un comentario breve.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Revise solicitudes de rebajo, apruebe acumulaciones y registre cada decisión con un comentario breve.</p>
         </header>
 
         <AdminDashboard />

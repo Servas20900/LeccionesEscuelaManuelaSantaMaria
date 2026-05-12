@@ -19,6 +19,25 @@ export const motivoOptions = [
 
 export type MotivoOption = (typeof motivoOptions)[number];
 
+export const horarioOptions = [
+  "07:00 - 07:40 A.M",
+  "07:40 - 08:20 A.M",
+  "08:35 - 09:15 A.M",
+  "09:15 - 09:55 A.M",
+  "10:05 - 10:45 A.M",
+  "10:45 - 11:25 A.M",
+  "11:30 - 12:10 A.M",
+  "12:30 - 01:10 P.M",
+  "01:10 - 01:50 P.M",
+  "02:05 - 02:45 P.M",
+  "02:45 - 03:25 P.M",
+  "03:35 - 04:15 P.M",
+  "04:15 - 04:55 P.M",
+  "05:00 - 05:40 P.M",
+] as const;
+
+export type HorarioOption = (typeof horarioOptions)[number];
+
 function normalizeDetailValue(value: string) {
   return value.normalize("NFKC").trim();
 }
@@ -216,9 +235,12 @@ export const accumulationRecordSchema = z
       .min(1, "La cantidad mínima es 1 lección.")
       .max(20, "La cantidad máxima permitida es 20 lecciones."),
     horarioLeccionesAcumuladas: z
-      .string()
-      .trim()
-      .regex(timeRangePattern, "Use el formato HH:MM - HH:MM para el horario."),
+      .array(z.string())
+      .min(1, "Seleccione al menos un horario.")
+      .refine(
+        (horarios) => horarios.every((horario) => horarioOptions.includes(horario as HorarioOption)),
+        { message: "Seleccione horarios válidos." },
+      ),
     motivo: z
       .string()
       .trim()
@@ -245,21 +267,18 @@ export const accumulationRecordSchema = z
       "future",
     );
 
-    const [startRaw, endRaw] = data.horarioLeccionesAcumuladas.split("-").map((value) => value.trim());
-    if (timePattern.test(startRaw) && timePattern.test(endRaw)) {
-      const [startHour, startMinute] = startRaw.split(":").map(Number);
-      const [endHour, endMinute] = endRaw.split(":").map(Number);
-      const startTotalMinutes = startHour * 60 + startMinute;
-      const endTotalMinutes = endHour * 60 + endMinute;
-
-      if (endTotalMinutes <= startTotalMinutes) {
+    // Validar que la cantidad indicada permita la selección realizada
+    if (Array.isArray(data.horarioLeccionesAcumuladas)) {
+      if (data.horarioLeccionesAcumuladas.length > data.cantidadLecciones) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["horarioLeccionesAcumuladas"],
-          message: "La hora final debe ser posterior a la hora inicial.",
+          message: "Ha seleccionado más horarios que la cantidad indicada.",
         });
       }
     }
+
+    // No forzamos igualdad entre cantidad y horarios aquí; el formulario permite editar la cantidad.
   });
 
 export const loginSchema = z.object({
@@ -280,10 +299,14 @@ export interface SubmissionRecord extends TeacherRequestInput {
   sheetTitle: string;
 }
 
-export interface AccumulationRecord extends AccumulationRecordInput {
+export interface AccumulationRecord extends Omit<AccumulationRecordInput, "horarioLeccionesAcumuladas"> {
   timestamp: string;
   rowIndex: number;
   sheetTitle: string;
+  estado: SubmissionState;
+  fechaAutorizacion: string;
+  comentarioDirectora: string;
+  horarioLeccionesAcumuladas: string; // Viene como cadena desde la hoja de cálculo
 }
 
 export function teacherFullName(data: Pick<TeacherRequestInput, "nombre" | "primerApellido" | "segundoApellido">) {

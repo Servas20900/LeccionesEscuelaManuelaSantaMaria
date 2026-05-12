@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { AdminNavbar } from "@/components/admin-navbar";
 import { AdminAccumulationsDashboard } from "@/components/admin-accumulations-dashboard";
+import { isAdminSessionValid } from "@/lib/admin-auth";
 
 export const metadata: Metadata = {
   title: "Acumulaciones",
 };
 
 export default function AdminAccumulationsPage() {
+  if (!isAdminSessionValid()) {
+    redirect("/admin");
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
       <div className="absolute inset-0 grid-pattern opacity-30" />

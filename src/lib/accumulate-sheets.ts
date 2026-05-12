@@ -1,5 +1,5 @@
 import { google } from "googleapis";
-import { teacherFullName, type AccumulationRecord, type AccumulationRecordInput } from "./schemas";
+import { teacherFullName, type AccumulationRecord, type AccumulationRecordInput, type RespondInput, type SubmissionState } from "./schemas";
 
 const accumulationHeaders = [
   "Timestamp",
@@ -13,6 +13,9 @@ const accumulationHeaders = [
   "Horario Lecciones",
   "Motivo",
   "Detalle",
+  "Estado",
+  "Fecha Autorización",
+  "Comentario Directora",
 ];
 
 function requiredEnv(name: string) {
@@ -75,6 +78,9 @@ function buildAccumulationRecord(sheetTitle: string, rowIndex: number, row: stri
     horarioLeccionesAcumuladas: row[8] ?? "",
     motivo: row[9] ?? "",
     detalle: row[10] ?? "",
+    estado: (row[11] ?? "Aprobada") as SubmissionState,
+    fechaAutorizacion: row[12] ?? "",
+    comentarioDirectora: row[13] ?? "",
   };
 }
 
@@ -112,7 +118,7 @@ async function createTeacherSheet(submission: AccumulationRecordInput) {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${quoteSheetTitle(title)}!A1:K1`,
+    range: `${quoteSheetTitle(title)}!A1:N1`,
     valueInputOption: "RAW",
     requestBody: { values: [accumulationHeaders] },
   });
@@ -129,7 +135,7 @@ export async function appendAccumulationToSheet(submission: AccumulationRecordIn
 
   const response = await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${quoteSheetTitle(sheetTitle)}!A:K`,
+    range: `${quoteSheetTitle(sheetTitle)}!A:N`,
     insertDataOption: "INSERT_ROWS",
     valueInputOption: "RAW",
     requestBody: {
@@ -142,9 +148,12 @@ export async function appendAccumulationToSheet(submission: AccumulationRecordIn
         submission.correoInstitucional,
         submission.fechaLeccionesAcumuladas,
         submission.cantidadLecciones,
-        submission.horarioLeccionesAcumuladas,
+        submission.horarioLeccionesAcumuladas.join(", "),
         submission.motivo,
         submission.detalle,
+        "Pendiente",
+        "",
+        "",
       ]],
     },
     includeValuesInResponse: true,
@@ -175,7 +184,7 @@ export async function listAllAccumulations() {
 
     const rowsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${quoteSheetTitle(sheetTitle)}!A2:K`,
+      range: `${quoteSheetTitle(sheetTitle)}!A2:N`,
     });
 
     const rows = rowsResponse.data.values ?? [];
@@ -198,7 +207,7 @@ export async function getAccumulationSummaryByCedula(cedula: string) {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${quoteSheetTitle(sheetTitle)}!A2:K`,
+    range: `${quoteSheetTitle(sheetTitle)}!A2:N`,
   });
 
   const rows = response.data.values ?? [];
@@ -223,10 +232,13 @@ export async function getAccumulationSummaryByCedula(cedula: string) {
   let ultimaFechaAcumulada = "";
 
   for (const row of records) {
-    totalLecciones += parseLeccionesValue(row[7] ?? "0");
+    const estado = (row[11] ?? "Aprobada").trim();
+    if (estado === "Aprobada") {
+      totalLecciones += parseLeccionesValue(row[7] ?? "0");
+    }
 
     const timestamp = row[0] ?? "";
-    if (timestamp && (!lastRecordTimestamp || Date.parse(timestamp) > Date.parse(lastRecordTimestamp))) {
+    if (estado === "Aprobada" && timestamp && (!lastRecordTimestamp || Date.parse(timestamp) > Date.parse(lastRecordTimestamp))) {
       lastRecordTimestamp = timestamp;
       ultimaFechaAcumulada = row[6] ?? "";
     }
@@ -241,4 +253,94 @@ export async function getAccumulationSummaryByCedula(cedula: string) {
     ultimaFechaAcumulada,
     ultimoRegistro: lastRecordTimestamp,
   };
+}
+
+export async function findAccumulationByLocation(cedula: string, rowIndex: number) {
+  const sheets = getSheetsClient();
+  const spreadsheetId = requiredEnv("GOOGLE_SHEET_ID_ACCUMULATE");
+  const sheetTitle = await findSheetTitleByCedula(cedula);
+
+  if (!sheetTitle) {
+    throw new Error("No se encontró una pestaña para esa cédula.");
+  }
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${quoteSheetTitle(sheetTitle)}!A${rowIndex}:N${rowIndex}`,
+  });
+
+  const row = response.data.values?.[0];
+  if (!row) {
+    throw new Error("No se encontró la fila solicitada.");
+  }
+
+  return buildAccumulationRecord(sheetTitle, rowIndex, row.map((value) => String(value ?? "")));
+}
+
+export async function updateAccumulationDecision({ cedula, rowIndex, decision, comment }: RespondInput) {
+  const sheets = getSheetsClient();
+  const spreadsheetId = requiredEnv("GOOGLE_SHEET_ID_ACCUMULATE");
+  const sheetTitle = await findSheetTitleByCedula(cedula);
+
+  if (!sheetTitle) {
+    throw new Error("No se encontró una pestaña para esa cédula.");
+  }
+
+  const timestamp = new Date().toISOString();
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${quoteSheetTitle(sheetTitle)}!L${rowIndex}:N${rowIndex}`,
+    valueInputOption: "RAW",
+    requestBody: {
+      values: [[decision, timestamp, comment]],
+    },
+  });
+
+  return findAccumulationByLocation(cedula, rowIndex);
+}
+
+export async function migrateAccumulationHeaders() {
+  const sheets = getSheetsClient();
+  const spreadsheetId = requiredEnv("GOOGLE_SHEET_ID_ACCUMULATE");
+  const spreadsheet = await sheets.spreadsheets.get({
+    spreadsheetId,
+    fields: "sheets.properties.title",
+  });
+
+  const updated: string[] = [];
+  const skipped: string[] = [];
+
+  for (const sheet of spreadsheet.data.sheets ?? []) {
+    const title = sheet.properties?.title;
+    if (!title) continue;
+
+    try {
+      const headerResp = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${quoteSheetTitle(title)}!A1:N1`,
+      });
+
+      const existing = headerResp.data.values?.[0] ?? [];
+      const hasEstado = String(existing[11] ?? "").trim() !== "" && existing.length >= accumulationHeaders.length;
+      if (hasEstado) {
+        skipped.push(title);
+        continue;
+      }
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${quoteSheetTitle(title)}!A1:N1`,
+        valueInputOption: "RAW",
+        requestBody: { values: [accumulationHeaders] },
+      });
+
+      updated.push(title);
+    } catch (err) {
+      // If reading/updating failed for a sheet, skip it but continue the migration for others.
+      skipped.push(title ?? "(unknown)");
+    }
+  }
+
+  return { updated, skipped };
 }

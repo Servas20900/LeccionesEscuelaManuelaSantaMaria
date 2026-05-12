@@ -1,13 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ClipboardCheck, Loader2, Send } from "lucide-react";
-import { accumulationRecordSchema, motivoOptions, type AccumulationRecordInput } from "@/lib/schemas";
+import { accumulationRecordSchema, horarioOptions, motivoOptions, type AccumulationRecordInput } from "@/lib/schemas";
 
-const defaultValues: AccumulationRecordInput = {
+  const defaultValues: AccumulationRecordInput = {
   nombre: "",
   primerApellido: "",
   segundoApellido: "",
@@ -15,7 +15,7 @@ const defaultValues: AccumulationRecordInput = {
   correoInstitucional: "",
   fechaLeccionesAcumuladas: "",
   cantidadLecciones: 1,
-  horarioLeccionesAcumuladas: "07:00 - 08:20",
+  horarioLeccionesAcumuladas: [],
   motivo: "",
   detalle: "",
 };
@@ -23,15 +23,31 @@ const defaultValues: AccumulationRecordInput = {
 export function TeacherAccumulationForm() {
   const [serverMessage, setServerMessage] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [horariosOpen, setHorariosOpen] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<AccumulationRecordInput>({
     resolver: zodResolver(accumulationRecordSchema),
     defaultValues,
   });
+
+  const horariosSeleccionados = watch("horarioLeccionesAcumuladas") as string[];
+  const cantidadLecciones = watch("cantidadLecciones") as number;
+
+  useEffect(() => {
+    if (!Array.isArray(horariosSeleccionados)) return;
+    if (typeof cantidadLecciones !== "number") return;
+
+    if (horariosSeleccionados.length > cantidadLecciones) {
+      const trimmed = horariosSeleccionados.slice(0, cantidadLecciones);
+      setValue("horarioLeccionesAcumuladas", trimmed, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [cantidadLecciones, horariosSeleccionados, setValue]);
 
   async function onSubmit(values: AccumulationRecordInput) {
     setServerMessage(null);
@@ -89,8 +105,47 @@ export function TeacherAccumulationForm() {
             <Field label="Cantidad de lecciones" error={errors.cantidadLecciones?.message}>
               <input className={inputClass} type="number" min={1} max={20} {...register("cantidadLecciones", { valueAsNumber: true })} />
             </Field>
-            <Field label="Horario acumulado" error={errors.horarioLeccionesAcumuladas?.message} hint="HH:MM - HH:MM">
-              <input className={inputClass} placeholder="07:00 - 08:20" {...register("horarioLeccionesAcumuladas")} />
+
+            <Field label="Horario acumulado" error={errors.horarioLeccionesAcumuladas?.message} hint="Seleccione hasta la cantidad indicada">
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setHorariosOpen((v) => !v)}
+                  className={`${inputClass} flex items-center justify-between gap-3`}
+                >
+                  <span className="truncate">
+                    {Array.isArray(horariosSeleccionados) && horariosSeleccionados.length > 0
+                      ? horariosSeleccionados.join(", ")
+                      : "Seleccione lecciones "}
+                  </span>
+                  <span className="text-xs text-slate-500">{horariosOpen ? "Cerrar" : "Abrir"}</span>
+                </button>
+
+                {horariosOpen ? (
+                  <div className="mt-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+                    <div className="grid gap-2">
+                      {horarioOptions.map((option) => {
+                        const selected = Array.isArray(horariosSeleccionados) && horariosSeleccionados.includes(option);
+                        const selectedCount = Array.isArray(horariosSeleccionados) ? horariosSeleccionados.length : 0;
+                        const disableUnchecked = !selected && selectedCount >= (cantidadLecciones || 0);
+
+                        return (
+                          <label key={option} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              value={option}
+                              disabled={disableUnchecked}
+                              {...register("horarioLeccionesAcumuladas")}
+                              className="h-4 w-4"
+                            />
+                            <span className="text-sm">{option}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </Field>
           </div>
 

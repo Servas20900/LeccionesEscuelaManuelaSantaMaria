@@ -62,7 +62,7 @@ export function AccumulationSummaryChecker() {
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-900/60">Consulta pública</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Sumatoria de lecciones acreditadas</h2>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Sumatoria de lecciones aprobadas</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
             Ingrese la cédula para ver el total de lecciones registradas automáticamente desde Google Sheets.
           </p>
@@ -100,7 +100,7 @@ export function AccumulationSummaryChecker() {
             <Sigma className="mt-0.5 h-5 w-5 flex-none" />
             <div>
               <p className="font-semibold">Cálculo automático</p>
-              <p className="mt-1 leading-6">Cada acumulación nueva actualiza el total sin sumas manuales.</p>
+              <p className="mt-1 leading-6">Cada acumulación aprobada actualiza el total sin sumas manuales.</p>
             </div>
           </div>
 

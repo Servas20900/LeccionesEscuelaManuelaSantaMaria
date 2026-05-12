@@ -32,6 +32,14 @@ GOOGLE_SHEET_ID=
 SCHOOL_FROM_EMAIL=
 ```
 
+Notas para despliegue en Azure Static Web Apps:
+
+- Añade `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID_ACCUMULATE` (id de la hoja usada por acumulaciones), `ADMIN_PASSWORD`, `RESEND_API_KEY`, `SCHOOL_FROM_EMAIL` en la sección "Configuration" de tu Static Web App.
+- En Azure, guarda `GOOGLE_PRIVATE_KEY` con los caracteres de nueva línea como `\n` (no pegues saltos de línea reales). El código local ya transforma `\\n` a saltos reales.
+- El workflow GitHub Actions `.github/workflows/azure-static-web-apps.yml` está incluido y construye con `npm run build` y despliega el artefacto `.next`.
+- Asegúrate de crear el secreto `AZURE_STATIC_WEB_APPS_API_TOKEN` en el repositorio (proporcionado por Azure cuando creas la Static Web App via GitHub).
+
+
 ## Desarrollo local
 
 ```bash
