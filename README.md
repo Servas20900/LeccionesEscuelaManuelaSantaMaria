@@ -16,7 +16,7 @@ Aplicación para gestionar solicitudes de rebajo de horas acumuladas en un centr
 - React Hook Form + Zod
 - Resend
 - Google Sheets API
-- Azure Static Web Apps
+- Vercel (hosting gratuito)
 
 ## Variables de entorno
 
@@ -32,12 +32,28 @@ GOOGLE_SHEET_ID=
 SCHOOL_FROM_EMAIL=
 ```
 
-Notas para despliegue en Azure Static Web Apps:
+## Despliegue en Vercel (Recomendado)
 
-- Añade `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID_ACCUMULATE` (id de la hoja usada por acumulaciones), `ADMIN_PASSWORD`, `RESEND_API_KEY`, `SCHOOL_FROM_EMAIL` en la sección "Configuration" de tu Static Web App.
-- En Azure, guarda `GOOGLE_PRIVATE_KEY` con los caracteres de nueva línea como `\n` (no pegues saltos de línea reales). El código local ya transforma `\\n` a saltos reales.
-- El workflow GitHub Actions `.github/workflows/azure-static-web-apps.yml` está incluido y construye con `npm run build` y despliega el artefacto `.next`.
-- Asegúrate de crear el secreto `AZURE_STATIC_WEB_APPS_API_TOKEN` en el repositorio (proporcionado por Azure cuando creas la Static Web App via GitHub).
+Vercel es la mejor opción para Next.js y es **completamente gratuito**.
+
+**Pasos:**
+
+1. Crea una cuenta en [Vercel](https://vercel.com) usando tu GitHub.
+2. Importa este repositorio:
+   - Ve a Vercel Dashboard → **Add New → Project**
+   - Selecciona el repositorio de GitHub
+   - Vercel detecta automáticamente que es Next.js
+3. Configura variables de entorno en **Settings → Environment Variables**:
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
+   - `GOOGLE_PRIVATE_KEY` (con caracteres `\n` literales)
+   - `GOOGLE_SHEET_ID_ACCUMULATE`
+   - `ADMIN_PASSWORD`
+   - `RESEND_API_KEY`
+   - `SCHOOL_FROM_EMAIL`
+4. Click **Deploy** — Listo en segundos.
+5. Cada push a `main` redeploya automáticamente.
+
+**Plan Free de Vercel:** 100 GB bandwidth/mes, Serverless Functions ilimitadas, sostenible a largo plazo.
 
 
 ## Desarrollo local
@@ -47,11 +63,14 @@ npm install
 npm run dev
 ```
 
-- Formulario público: `http://localhost:3000`
-- Panel de dirección: `http://localhost:3000/admin`
+La app estará disponible en `http://localhost:3000`:
+- Formulario público: `/` (home)
+- Panel administrativo: `/admin` (requiere contraseña)
+- Consulta de acumuladas: `/acumuladas`
 
 ## Notas
 
 - El correo institucional debe finalizar en `@mep.go.cr`.
 - `GOOGLE_PRIVATE_KEY` corresponde a la clave privada de la service account.
 - La hoja de cálculo debe compartirse con `GOOGLE_SERVICE_ACCOUNT_EMAIL` como Editor.
+- En Vercel, guarda `GOOGLE_PRIVATE_KEY` con los caracteres `\n` literales (no saltos reales de línea).
