@@ -9,11 +9,11 @@ type AdminNavbarProps = {
 };
 
 function itemClass(active: boolean) {
+  const baseClass = "inline-flex items-center justify-center gap-2 rounded-xl border transition h-10 w-10 sm:h-9 sm:w-auto sm:px-3 sm:py-2 flex-shrink-0";
   if (active) {
-    return "inline-flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900 px-3 py-2 text-slate-100";
+    return `${baseClass} border-slate-800/70 bg-slate-900 text-slate-100`;
   }
-
-  return "inline-flex items-center gap-2 rounded-xl border border-slate-300/70 bg-white/85 px-3 py-2 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100";
+  return `${baseClass} border-slate-300/70 bg-white/85 text-slate-700 hover:-translate-y-0.5 hover:bg-slate-100`;
 }
 
 export function AdminNavbar({ currentPath = "/admin" }: AdminNavbarProps) {
@@ -30,17 +30,17 @@ export function AdminNavbar({ currentPath = "/admin" }: AdminNavbarProps) {
           </div>
         </div>
 
-        <nav className="flex items-center gap-1 text-xs sm:text-sm font-medium flex-wrap">
-          <Link href="/admin" className={itemClass(currentPath === "/admin")}>
-            <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+        <nav className="flex items-center gap-2 sm:gap-1 text-xs sm:text-sm font-medium flex-wrap">
+          <Link href="/admin" className={itemClass(currentPath === "/admin")} title="Rebajos">
+            <LayoutDashboard className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Rebajos</span>
           </Link>
-          <Link href="/admin/acumulaciones" className={itemClass(currentPath === "/admin/acumulaciones")}>
-            <BookMarked className="h-4 w-4 flex-shrink-0" />
+          <Link href="/admin/acumulaciones" className={itemClass(currentPath === "/admin/acumulaciones")} title="Acumulaciones">
+            <BookMarked className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Acumulaciones</span>
           </Link>
-          <div className="inline-flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-100 flex-shrink-0">
-            <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+          <div className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900 text-slate-100 h-10 w-10 sm:h-9 sm:w-auto sm:px-3 sm:py-2 flex-shrink-0" title="Zona segura">
+            <ShieldCheck className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Segura</span>
           </div>
         </nav>

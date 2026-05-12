@@ -9,11 +9,11 @@ type PublicNavbarProps = {
 };
 
 function itemClass(active: boolean) {
+  const baseClass = "inline-flex items-center justify-center gap-2 rounded-xl border transition h-10 w-10 sm:h-9 sm:w-auto sm:px-3 sm:py-2 flex-shrink-0";
   if (active) {
-    return "inline-flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900 px-3 py-2 text-slate-100";
+    return `${baseClass} border-slate-800/70 bg-slate-900 text-slate-100`;
   }
-
-  return "inline-flex items-center gap-2 rounded-xl border border-slate-300/70 bg-white/85 px-3 py-2 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100";
+  return `${baseClass} border-slate-300/70 bg-white/85 text-slate-700 hover:-translate-y-0.5 hover:bg-slate-100`;
 }
 
 export function PublicNavbar({ currentPath = "/" }: PublicNavbarProps) {
@@ -30,21 +30,21 @@ export function PublicNavbar({ currentPath = "/" }: PublicNavbarProps) {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-1 text-xs sm:text-sm font-medium flex-wrap justify-start sm:justify-end">
-          <Link href="/" className={itemClass(currentPath === "/")}>
-            <Home className="h-4 w-4 flex-shrink-0" />
+        <nav className="flex items-center gap-2 sm:gap-1 text-xs sm:text-sm font-medium flex-wrap justify-start sm:justify-end">
+          <Link href="/" className={itemClass(currentPath === "/")} title="Inicio">
+            <Home className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Inicio</span>
           </Link>
-          <Link href="/solicitud" className={itemClass(currentPath === "/solicitud")}>
-            <FilePenLine className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Uso Acumuladas</span>
+          <Link href="/solicitud" className={itemClass(currentPath === "/solicitud")} title="Uso Acumuladas">
+            <FilePenLine className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Uso</span>
           </Link>
-          <Link href="/acumuladas" className={itemClass(currentPath === "/acumuladas")}>
-            <BookMarked className="h-4 w-4 flex-shrink-0" />
+          <Link href="/acumuladas" className={itemClass(currentPath === "/acumuladas")} title="Registro">
+            <BookMarked className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Registro</span>
           </Link>
-          <Link href="/consulta" className={itemClass(currentPath === "/consulta")}>
-            <Search className="h-4 w-4 flex-shrink-0" />
+          <Link href="/consulta" className={itemClass(currentPath === "/consulta")} title="Consulta">
+            <Search className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Consulta</span>
           </Link>
         </nav>
